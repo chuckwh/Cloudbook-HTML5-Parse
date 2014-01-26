@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+	
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.css">
+    
+    <script src="http://www.parsecdn.com/js/parse-1.2.16.min.js"> </script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<meta charset="UTF-8">
+<title>Cloudbook HTML5 Parse</title>
+	<style type="text/css">
+		.td-1 {
+			display:table-cell;
+			font-family:"Helvetica Neue", Helvetica, Arial, sans-serif; 
+			font-size: 1.2em; 
+			font-weight:900;
+			}
+			.td-2 {
+			display:table-cell;
+			padding: 0 0 0 6px;
+			font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+			}
+			.p2 {
+				padding-bottom: 2em;
+			}
+			.tr {
+				display:table-row;
+			}
+	</style>
+</head>
+
+<body>
+<h1>URL Collector</h1>
+<div id="main" class="container">
+	<div class="row">
+    	<div class="col-md-12">
+            <div id="url-wrapper" class="form-group">
+				<label for="urlInput">URL</label>
+				<input type="text" id="urlInput" placeholder="Enter a URL here" class="form-control">
+            </div>
+            <div id="name-wrapper" class="form-group">
+				<label for="nameInput">Name of this URL</label>
+				<input type="text" id="nameInput" placeholder="Enter a name for this URL here" class="form-control">
+            </div>
+
+            <div id="category-wrapper" class="form-group">
+				<label for="categoryInput">Category</label>
+				<input type="text" id="categoryInput" placeholder="Enter a category here" class="form-control">
+            </div>
+
+            
+             <div>
+ 				<input type="button" id="item-submit" value="Add URL" class="btn btn-primary">
+             </div>
+            
+			</div>
+		</div>
+	<div class="row">
+    	<div class="col-md-12">
+            <div id="successResponse">
+                <div id="successStatus"></div>
+                <div><a href=""  id="itemURL" class="url-view"></a> </div>
+            </div>
+        	<div id="failureResponse"></div>
+        </div>
+    </div>
+
+	<div class="row">
+    	<div class="col-md-12">
+        	
+        	<div id="listItems">
+           </div>
+       </div>
+   </div>
+  
+ 	<div class="row">
+    	<div class="col-md-12" id="viewer">
+       </div>
+    </div>
+ </div>
+<script type="text/javascript">
+	$(document).ready(function(e) {
+		var APP_ID = "",
+		JS_KEY = "";
+        Parse.initialize(APP_ID, JS_KEY);
+		list();
+		
+		$(document).on('click','.url-view', function() {
+			var url = $(this).attr('data-url');
+			newwindow=window.open(url,'name','height=600,width=1024');
+		});
+    });
+
+	
+	var list = function(){
+/*		
+		Extend the Parse.Object class to make the ListItem class
+		
+*/		ListItem = Parse.Object.extend("CloudbookURLs");
+/*		 
+		Use Parse.Query to generate a new query, specifically querying the ListItem table.
+		
+*/		query = new Parse.Query(ListItem);
+	
+		//If you want to limit the query
+		//query.limit = 20;
+		query.descending('createdAt');
+		 
+		//Submit the query and pass in callback functions.
+		query.find({
+		  success: function(results) {
+			   $('#listItems').html('');
+			 $('#listItems').append('<h1>Useful Cloud URLs</h1>');
+			 var well = $('#listItems').append('<div class="well" id="urls"></div>');
+			 
+		  for (var i = 0; i < results.length; i++) { 
+			  var object = results[i];
+			  $('#urls').append(
+			  '<p class="tr">'
+			  	+ '<span class="td-1"><button data-url="' + object.get('link') 
+				+ '" type="button" title="Pops up new window" ' 
+				+ 'class="btn btn-default btn-sm url-view">'
+				+ '<span class="glyphicon glyphicon-globe"></span>'
+				+ '</button>'
+			  	+ ' URL: </span>'
+			  	+ '<span class="td-2">'
+				+ '<a target="_blank" href="' 
+				+ object.get('link') 
+				+  '" title="' + object.get('link')
+				+ '">'
+			  	+ object.get('name')  
+			  	+ '</a></span></p>'
+			 	+ '<p class="tr"><span class="td-1">Category: </span>'
+				+ '<span class="td-2 p2">' 
+			  	+ object.get('category')  
+			  	+ '</span></p>'
+			  );
+			 
+			}			
+	
+		  },
+		  error: function(error) {
+			//Error Callback
+		  }
+		});		
+	};
+	
+	$('#item-submit').on('click', function() {
+ 
+		//Extend the native Parse.Object class.
+		var URL = Parse.Object.extend("CloudbookURLs");
+	 
+		//Instantiate an object of the CloudbookURLs class
+		var url = new URL(),
+		urlLink = $('#urlInput').val(),
+		urlName = $('#nameInput').val(),
+		urlCategory = $('#categoryInput').val();
+	 
+/*		url is now an object instantiated from the cloned URL object, 
+		so we assign the properties that we want to it and save it to the database.
+*/
+		url.set("category", urlCategory);
+		url.set("name", urlName);
+		url.set('link', urlLink);
+/*	 
+		Call the save method, and pass in success and failure callback functions.
+		
+*/		url.save(null, {  
+			//Success Callback      
+			success: function(url) {				
+				$('#successStatus').text(
+				'You successfully added a link. The ID is: ' 
+				+ url.id
+				);		
+				list();	
+			
+		},
+		error: function(gameScore, error) {
+			//Failure Callback
+			$('#failureResponse').text('Ooops, something went wrong');
+		}
+		});
+	});
+</script>
+
+</body>
+</html>

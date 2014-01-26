@@ -1,0 +1,1 @@
+This is a simple static html file for use with Parse as part of the book Web Development in the Cloud. You don't need the included bootstrap or js files, because the file stands alone using CDNs for the bootstrap and Parse JS files. 
